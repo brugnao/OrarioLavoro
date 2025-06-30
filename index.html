@@ -1,0 +1,254 @@
+
+Nessun elemento selezionato 
+
+Vai ai contenuti
+Utilizzo di Gmail con gli screen reader
+Conversazioni
+(nessun oggetto)
+Posta in arrivo
+Lorenzo Brugnoni <lorenzo.brugnoni1@gmail.com>
+	
+Allegati17:25 (2 ore fa)
+	
+a me
+ Un allegato  •  Scansione eseguita da Gmail
+	
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Orario di Lavoro</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Orario Lavoro">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkNhbGNvbGF0b3JlIE9yYXJpbyBkaSBMYXZvcm8iLAogICJzaG9ydF9uYW1lIjogIk9yYXJpbyBMYXZvcm8iLAogICJkZXNjcmlwdGlvbiI6ICJDYWxjb2xhIGwnaG9yYXJpbyBkaSB1c2NpdGEgZGFsIGxhdm9ybyIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2N2VlYSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhNalFpSUdobGFXZG9kRDBpTVRJMElqNEVOekl3SUhSbGVIUXRZVzVqYUc5eU9TWkJRek04TDJkK1BHZGdiajRBTjBBM0tCZHNibVZsS2pzdFFuMDhMMmMrUEM5emRtYytJaUVmVz4iLAogICAgICAic2l6ZXMiOiAiMTI0eDEyNCIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9"
+    >
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .input-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        input[type="time"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 18px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+        
+        input[type="time"]:focus {
+            border-color: #667eea;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .result-container {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            color: white;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .result-label {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .result-time {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .work-duration {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .clock-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+        
+        .empty-state {
+            opacity: 0.6;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .result-time {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Calcolatore Orario di Lavoro</h1>
+        
+        <div class="input-group">
+            <label for="entryTime">Orario di Ingresso:</label>
+            <input type="time" id="entryTime" placeholder="Inserisci orario di ingresso">
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="empty-state">
+                <div class="clock-icon">🕐</div>
+                <div class="result-label">Inserisci l'orario di ingresso</div>
+                <div style="font-size: 14px; opacity: 0.7;">L'orario di uscita verrà calcolato automaticamente</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const entryTimeInput = document.getElementById('entryTime');
+        const resultContainer = document.getElementById('resultContainer');
+        
+        // Funzione per calcolare l'orario di uscita
+        function calculateExitTime(entryTime) {
+            if (!entryTime) return null;
+            
+            const [hours, minutes] = entryTime.split(':').map(Number);
+            
+            // Converti in minuti totali
+            let totalMinutes = hours * 60 + minutes;
+            
+            // Aggiungi 8 ore e 45 minuti (525 minuti)
+            totalMinutes += 525;
+            
+            // Converti di nuovo in ore e minuti
+            const exitHours = Math.floor(totalMinutes / 60) % 24;
+            const exitMinutes = totalMinutes % 60;
+            
+            // Formatta con zero iniziale se necessario
+            const formattedHours = exitHours.toString().padStart(2, '0');
+            const formattedMinutes = exitMinutes.toString().padStart(2, '0');
+            
+            return `${formattedHours}:${formattedMinutes}`;
+        }
+        
+        // Funzione per aggiornare il risultato
+        function updateResult() {
+            const entryTime = entryTimeInput.value;
+            
+            if (entryTime) {
+                const exitTime = calculateExitTime(entryTime);
+                
+                resultContainer.innerHTML = `
+                    <div class="fade-in">
+                        <div class="result-label">Orario di Uscita:</div>
+                        <div class="result-time">${exitTime}</div>
+                        <div class="work-duration">Durata lavoro: 8 ore e 45 minuti</div>
+                    </div>
+                `;
+                
+                resultContainer.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+            } else {
+                resultContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="clock-icon">🕐</div>
+                        <div class="result-label">Inserisci l'orario di ingresso</div>
+                        <div style="font-size: 14px; opacity: 0.7;">L'orario di uscita verrà calcolato automaticamente</div>
+                    </div>
+                `;
+                
+                resultContainer.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
+        
+        // Event listener per l'input
+        entryTimeInput.addEventListener('input', updateResult);
+        entryTimeInput.addEventListener('change', updateResult);
+        
+        // Imposta l'orario corrente come default (opzionale)
+        window.addEventListener('load', function() {
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
+                              now.getMinutes().toString().padStart(2, '0');
+            // Rimuovi questa riga se non vuoi l'orario corrente come default
+            // entryTimeInput.value = currentTime;
+            // updateResult();
+        });
+    </script>
+</body>
+</html>
+
+work_time_calculator.html
+Visualizzazione di work_time_calculator.html.
