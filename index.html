@@ -1,183 +1,223 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Time Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Work Tracker</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1976d2">
   <style>
-    :root {
-      color-scheme: light dark;
-    }
-    body {
-      font-family: 'Segoe UI', sans-serif;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
       background-color: #121212;
       color: #e0e0e0;
-      margin: 0;
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
     }
-    .container {
-      background: #1e1e1e;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      max-width: 500px;
-      width: 100%;
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem;
+      box-sizing: border-box;
     }
     h1 {
+      text-align: center;
       color: #64b5f6;
+      margin-bottom: 1rem;
     }
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: 0.3rem;
+    .section {
+      margin-bottom: 1rem;
+      border-top: 1px solid #444;
+      padding-top: 1rem;
     }
     .input-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin: 0.5rem 0;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     input[type="time"] {
-      font-size: 1rem;
+      flex: 1;
       padding: 0.4rem;
-      border-radius: 0.4rem;
-      border: 1px solid #555;
       background-color: #2c2c2c;
+      border: 1px solid #555;
       color: #fff;
-      flex-grow: 1;
-      margin-right: 0.5rem;
+      border-radius: 4px;
     }
     button {
       background-color: #1976d2;
       color: white;
-      font-size: 0.9rem;
-      padding: 0.4rem 0.8rem;
       border: none;
-      border-radius: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #1565c0;
+    .result, .calendar, .summary {
+      background: #1e1e1e;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-y: auto;
+      flex: 1;
     }
-    .result {
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      color: #bbdefb;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
     }
-    .section {
-      margin-top: 1.5rem;
-      text-align: left;
-      border-top: 1px solid #444;
-      padding-top: 1rem;
+    th, td {
+      padding: 0.3rem;
+      border-bottom: 1px solid #333;
+      text-align: center;
+    }
+    select {
+      background: #2c2c2c;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 0.4rem;
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Work Time Calculator</h1><div class="section">
-  <label for="startTime">Start Time:</label>
-  <div class="input-row">
-    <input type="time" id="startTime" onchange="autoCalculateExpectedEndTime()">
-    <button onclick="setCurrentTime('startTime'); autoCalculateExpectedEndTime()">Now</button>
+  <div class="app">
+    <h1>Work Tracker</h1>
+    <div class="section">
+      <label>Start Time:</label>
+      <div class="input-row">
+        <input type="time" id="startTime" onchange="autoCalculateExpectedEndTime()">
+        <button onclick="setCurrentTime('startTime'); autoCalculateExpectedEndTime()">Now</button>
+      </div>
+    </div>
+    <div class="section">
+      <label>End Time:</label>
+      <div class="input-row">
+        <input type="time" id="endTime" onchange="calculateAndSave()">
+        <button onclick="setCurrentTime('endTime'); calculateAndSave()">Now</button>
+      </div>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="calendar" id="calendar"></div>
+    <div class="summary">
+      <select id="monthSelect" onchange="renderSummary()"></select>
+      <div id="summaryTable"></div>
+    </div>
   </div>
-</div>
 
-<div class="section">
-  <label for="endTime">Actual End Time (optional):</label>
-  <div class="input-row">
-    <input type="time" id="endTime" onchange="calculateTimes()">
-    <button onclick="setCurrentTime('endTime'); calculateTimes()">Now</button>
-  </div>
-</div>
-
-<div class="result" id="result"></div>
-
-  </div>  <script>
+  <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js');
-      });
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
     }
 
-    function setCurrentTime(fieldId) {
+    const resultEl = document.getElementById("result");
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    function setCurrentTime(id) {
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById(fieldId).value = `${hours}:${minutes}`;
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById(id).value = `${h}:${m}`;
     }
 
-    function formatTime(d) {
-      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    function formatTime(date) {
+      return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     }
 
     function autoCalculateExpectedEndTime() {
-      const startInput = document.getElementById("startTime").value;
-      if (!startInput) return;
-
-      const [h1, m1] = startInput.split(":").map(Number);
+      const val = document.getElementById("startTime").value;
+      if (!val) return;
+      const [h, m] = val.split(":").map(Number);
       const start = new Date();
-      start.setHours(h1, m1, 0, 0);
-
-      const expectedEnd = new Date(start);
-      expectedEnd.setMinutes(expectedEnd.getMinutes() + 8 * 60 + 45);
-
-      document.getElementById("result").innerHTML =
-        `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}`;
-
-      // If endTime already exists, trigger overtime calculation
-      const endInput = document.getElementById("endTime").value;
-      if (endInput) calculateTimes();
+      start.setHours(h, m, 0, 0);
+      const end = new Date(start);
+      end.setMinutes(end.getMinutes() + 525);
+      resultEl.innerHTML = `<strong>Expected end:</strong> ${formatTime(end)}`;
+      calculateAndSave();
     }
 
-    function calculateTimes() {
-      const startInput = document.getElementById("startTime").value;
-      const endInput = document.getElementById("endTime").value;
+    function calculateAndSave() {
+      const startVal = document.getElementById("startTime").value;
+      const endVal = document.getElementById("endTime").value;
+      if (!startVal || !endVal) return;
 
-      if (!startInput) return;
+      const [sh, sm] = startVal.split(":"), [eh, em] = endVal.split(":");
+      const start = new Date(), end = new Date();
+      start.setHours(+sh, +sm, 0, 0);
+      end.setHours(+eh, +em, 0, 0);
 
-      const [h1, m1] = startInput.split(":").map(Number);
-      const start = new Date();
-      start.setHours(h1, m1, 0, 0);
+      const expected = new Date(start);
+      expected.setMinutes(start.getMinutes() + 525);
+      let diff = Math.floor((end - expected) / 60000);
 
-      const expectedEnd = new Date(start);
-      expectedEnd.setMinutes(expectedEnd.getMinutes() + 8 * 60 + 45);
-
-      let actualEnd = new Date();
-      if (endInput) {
-        const [h2, m2] = endInput.split(":").map(Number);
-        actualEnd.setHours(h2, m2, 0, 0);
-      } else {
-        document.getElementById("result").innerHTML =
-          `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}`;
-        return;
-      }
-
-      let overtime = 0;
-      let minutini = 0;
-
-      if (actualEnd > expectedEnd) {
-        const diffMinutes = Math.floor((actualEnd - expectedEnd) / 60000);
-        if (diffMinutes >= 30) {
-          overtime += 30;
-          const remainder = diffMinutes - 30;
-          const blocks = Math.floor(remainder / 15);
-          overtime += blocks * 15;
-          minutini = remainder % 15;
+      let overtime = 0, minutini = 0;
+      if (diff > 0) {
+        if (diff >= 30) {
+          overtime = 30 + Math.floor((diff - 30) / 15) * 15;
+          minutini = (diff - 30) % 15;
         } else {
-          minutini = diffMinutes;
+          minutini = diff;
         }
       }
 
-      document.getElementById("result").innerHTML =
-        `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}<br>` +
+      const dayKey = new Date().toISOString().split("T")[0];
+      const data = {
+        date: dayKey,
+        start: startVal,
+        end: endVal,
+        overtime,
+        minutini
+      };
+
+      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
+      store[dayKey] = data;
+      localStorage.setItem("workdays", JSON.stringify(store));
+
+      resultEl.innerHTML =
+        `<strong>Expected end:</strong> ${formatTime(expected)}<br>` +
         `<strong>Overtime:</strong> ${overtime} min<br>` +
         `<strong>Minutini:</strong> ${minutini} min`;
+
+      renderCalendar();
+      renderSummary();
     }
-  </script></body>
+
+    function renderCalendar() {
+      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
+      const keys = Object.keys(store).sort().reverse();
+      const cal = document.getElementById("calendar");
+      cal.innerHTML = `<h3>Daily Logs</h3>`;
+      keys.forEach(k => {
+        const d = store[k];
+        cal.innerHTML += `${k}: ${d.start} - ${d.end} | OT: ${d.overtime} | M: ${d.minutini}<br>`;
+      });
+    }
+
+    function renderSummary() {
+      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
+      const summary = document.getElementById("summaryTable");
+      const monthSelect = document.getElementById("monthSelect");
+      const months = [...new Set(Object.keys(store).map(k => k.slice(0, 7)))];
+
+      monthSelect.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
+      const selected = monthSelect.value;
+      let rows = Object.entries(store).filter(([k]) => k.startsWith(selected));
+
+      let totalOT = 0, totalMinutini = 0;
+      let table = `<table><tr><th>Date</th><th>In</th><th>Out</th><th>OT</th><th>Min</th></tr>`;
+      rows.forEach(([date, d]) => {
+        totalOT += d.overtime;
+        totalMinutini += d.minutini;
+        table += `<tr><td>${date}</td><td>${d.start}</td><td>${d.end}</td><td>${d.overtime}</td><td>${d.minutini}</td></tr>`;
+      });
+      table += `<tr><th colspan=3>Total</th><th>${totalOT}</th><th>${totalMinutini}</th></tr></table>`;
+      summary.innerHTML = table;
+    }
+
+    // Inizializzazione
+    renderCalendar();
+    setTimeout(renderSummary, 50);
+  </script>
+</body>
 </html>
