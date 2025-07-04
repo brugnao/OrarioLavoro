@@ -77,8 +77,8 @@
     <h1>Work Time Calculator</h1><div class="section">
   <label for="startTime">Start Time:</label>
   <div class="input-row">
-    <input type="time" id="startTime">
-    <button onclick="setCurrentTime('startTime')">Now</button>
+    <input type="time" id="startTime" onchange="autoCalculateExpectedEndTime()">
+    <button onclick="setCurrentTime('startTime'); autoCalculateExpectedEndTime()">Now</button>
   </div>
 </div>
 
@@ -106,6 +106,25 @@
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       document.getElementById(fieldId).value = `${hours}:${minutes}`;
+    }
+
+    function formatTime(d) {
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function autoCalculateExpectedEndTime() {
+      const startInput = document.getElementById("startTime").value;
+      if (!startInput) return;
+
+      const [h1, m1] = startInput.split(":").map(Number);
+      const start = new Date();
+      start.setHours(h1, m1, 0, 0);
+
+      const expectedEnd = new Date(start);
+      expectedEnd.setMinutes(expectedEnd.getMinutes() + 8 * 60 + 45);
+
+      document.getElementById("result").innerHTML =
+        `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}`;
     }
 
     function calculateTimes() {
@@ -142,8 +161,6 @@
           minutini = diffMinutes;
         }
       }
-
-      const formatTime = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
       document.getElementById("result").innerHTML =
         `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}<br>` +
