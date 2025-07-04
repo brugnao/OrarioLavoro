@@ -11,8 +11,8 @@
     }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f4f8;
-      color: #333;
+      background-color: #121212;
+      color: #e0e0e0;
       margin: 0;
       padding: 2rem;
       display: flex;
@@ -21,19 +21,21 @@
       min-height: 100vh;
     }
     .container {
-      background: white;
+      background: #1e1e1e;
       padding: 2rem;
       border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
       text-align: center;
-      max-width: 450px;
+      max-width: 500px;
       width: 100%;
     }
     h1 {
-      color: #1976d2;
+      color: #64b5f6;
     }
     label {
       font-weight: 500;
+      display: block;
+      margin-bottom: 0.3rem;
     }
     .input-row {
       display: flex;
@@ -45,7 +47,9 @@
       font-size: 1rem;
       padding: 0.4rem;
       border-radius: 0.4rem;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
+      background-color: #2c2c2c;
+      color: #fff;
       flex-grow: 1;
       margin-right: 0.5rem;
     }
@@ -64,11 +68,13 @@
     .result {
       margin-top: 1.5rem;
       font-size: 1rem;
-      color: #444;
+      color: #bbdefb;
     }
     .section {
-      margin-top: 1rem;
+      margin-top: 1.5rem;
       text-align: left;
+      border-top: 1px solid #444;
+      padding-top: 1rem;
     }
   </style>
 </head>
@@ -85,12 +91,10 @@
 <div class="section">
   <label for="endTime">Actual End Time (optional):</label>
   <div class="input-row">
-    <input type="time" id="endTime">
-    <button onclick="setCurrentTime('endTime')">Now</button>
+    <input type="time" id="endTime" onchange="calculateTimes()">
+    <button onclick="setCurrentTime('endTime'); calculateTimes()">Now</button>
   </div>
 </div>
-
-<button onclick="calculateTimes()" style="margin-top: 1rem; width: 100%;">Calculate</button>
 
 <div class="result" id="result"></div>
 
@@ -125,13 +129,17 @@
 
       document.getElementById("result").innerHTML =
         `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}`;
+
+      // If endTime already exists, trigger overtime calculation
+      const endInput = document.getElementById("endTime").value;
+      if (endInput) calculateTimes();
     }
 
     function calculateTimes() {
       const startInput = document.getElementById("startTime").value;
       const endInput = document.getElementById("endTime").value;
 
-      if (!startInput) return alert("Please enter a start time.");
+      if (!startInput) return;
 
       const [h1, m1] = startInput.split(":").map(Number);
       const start = new Date();
@@ -140,10 +148,14 @@
       const expectedEnd = new Date(start);
       expectedEnd.setMinutes(expectedEnd.getMinutes() + 8 * 60 + 45);
 
-      let actualEnd = endInput ? new Date() : new Date();
+      let actualEnd = new Date();
       if (endInput) {
         const [h2, m2] = endInput.split(":").map(Number);
         actualEnd.setHours(h2, m2, 0, 0);
+      } else {
+        document.getElementById("result").innerHTML =
+          `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}`;
+        return;
       }
 
       let overtime = 0;
