@@ -1,9 +1,10 @@
 const CACHE_NAME = 'work-tracker-cache-v1';
 const urlsToCache = [
-  'orario.html',
-  'manifest.json',
-  'icons/icon-192.png',
-  'icons/icon-512.png'
+  './orario.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', event => {
