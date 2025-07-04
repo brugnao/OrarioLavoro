@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Work Tracker</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1976d2">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1976d2" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -39,7 +40,7 @@
       gap: 0.5rem;
       margin-top: 0.5rem;
     }
-    input[type="time"] {
+    input[type="time"], input[type="date"] {
       flex: 1;
       padding: 0.4rem;
       background-color: #2c2c2c;
@@ -79,6 +80,11 @@
       padding: 0.4rem;
       margin-bottom: 0.5rem;
     }
+    .msg {
+      text-align: center;
+      margin: 0.5rem 0;
+      color: #81c784;
+    }
   </style>
 </head>
 <body>
@@ -98,21 +104,27 @@
         <button onclick="setCurrentTime('endTime'); calculateAndSave()">Now</button>
       </div>
     </div>
+    <div class="msg" id="msg"></div>
     <div class="result" id="result"></div>
     <div class="calendar" id="calendar"></div>
     <div class="summary">
       <select id="monthSelect" onchange="renderSummary()"></select>
+      <button onclick="exportPDF()">Export PDF</button>
       <div id="summaryTable"></div>
     </div>
   </div>
-
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
     }
 
     const resultEl = document.getElementById("result");
-    const todayStr = new Date().toISOString().split('T')[0];
+    const msgEl = document.getElementById("msg");
+
+    function showMsg(text) {
+      msgEl.textContent = text;
+      setTimeout(() => msgEl.textContent = '', 2000);
+    }
 
     function setCurrentTime(id) {
       const now = new Date();
@@ -137,9 +149,9 @@
       calculateAndSave();
     }
 
-    function calculateAndSave() {
-      const startVal = document.getElementById("startTime").value;
-      const endVal = document.getElementById("endTime").value;
+    function calculateAndSave(dateKey = null, customStart = null, customEnd = null) {
+      const startVal = customStart || document.getElementById("startTime").value;
+      const endVal = customEnd || document.getElementById("endTime").value;
       if (!startVal || !endVal) return;
 
       const [sh, sm] = startVal.split(":"), [eh, em] = endVal.split(":");
@@ -161,7 +173,7 @@
         }
       }
 
-      const dayKey = new Date().toISOString().split("T")[0];
+      const dayKey = dateKey || new Date().toISOString().split("T")[0];
       const data = {
         date: dayKey,
         start: startVal,
@@ -173,11 +185,14 @@
       const store = JSON.parse(localStorage.getItem("workdays") || "{}");
       store[dayKey] = data;
       localStorage.setItem("workdays", JSON.stringify(store));
+      showMsg("Saved successfully");
 
-      resultEl.innerHTML =
-        `<strong>Expected end:</strong> ${formatTime(expected)}<br>` +
-        `<strong>Overtime:</strong> ${overtime} min<br>` +
-        `<strong>Minutini:</strong> ${minutini} min`;
+      if (!dateKey) {
+        resultEl.innerHTML =
+          `<strong>Expected end:</strong> ${formatTime(expected)}<br>` +
+          `<strong>Overtime:</strong> ${overtime} min<br>` +
+          `<strong>Minutini:</strong> ${minutini} min`;
+      }
 
       renderCalendar();
       renderSummary();
@@ -190,8 +205,31 @@
       cal.innerHTML = `<h3>Daily Logs</h3>`;
       keys.forEach(k => {
         const d = store[k];
-        cal.innerHTML += `${k}: ${d.start} - ${d.end} | OT: ${d.overtime} | M: ${d.minutini}<br>`;
+        cal.innerHTML += `
+          <div>
+            <strong>${k}</strong>: ${d.start} - ${d.end} | OT: ${d.overtime} | Min: ${d.minutini}<br>
+            <input type="time" id="edit-start-${k}" value="${d.start}">
+            <input type="time" id="edit-end-${k}" value="${d.end}">
+            <button onclick="saveEdit('${k}')">Save</button>
+            <button onclick="deleteDay('${k}')">Delete</button>
+          </div>
+        `;
       });
+    }
+
+    function saveEdit(k) {
+      const s = document.getElementById(`edit-start-${k}`).value;
+      const e = document.getElementById(`edit-end-${k}`).value;
+      calculateAndSave(k, s, e);
+    }
+
+    function deleteDay(k) {
+      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
+      delete store[k];
+      localStorage.setItem("workdays", JSON.stringify(store));
+      renderCalendar();
+      renderSummary();
+      showMsg("Deleted");
     }
 
     function renderSummary() {
@@ -201,7 +239,9 @@
       const months = [...new Set(Object.keys(store).map(k => k.slice(0, 7)))];
 
       monthSelect.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
-      const selected = monthSelect.value;
+      const selected = monthSelect.value || months[0];
+      monthSelect.value = selected;
+
       let rows = Object.entries(store).filter(([k]) => k.startsWith(selected));
 
       let totalOT = 0, totalMinutini = 0;
@@ -215,7 +255,19 @@
       summary.innerHTML = table;
     }
 
-    // Inizializzazione
+    async function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      const el = document.getElementById("summaryTable");
+      pdf.html(el, {
+        callback: function (doc) {
+          const m = document.getElementById("monthSelect").value;
+          doc.save(`WorkLog-${m}.pdf`);
+        },
+        x: 10, y: 10
+      });
+    }
+
     renderCalendar();
     setTimeout(renderSummary, 50);
   </script>
