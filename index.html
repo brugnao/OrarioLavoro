@@ -9,267 +9,253 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     html, body {
+      background: #121212;
+      color: #fff;
+      font-family: sans-serif;
       margin: 0;
       padding: 0;
-      height: 100%;
       overflow: hidden;
-      background-color: #121212;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', sans-serif;
     }
-    .app {
+    .container {
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      height: 100%;
-      padding: 1rem;
-      box-sizing: border-box;
+      gap: 1rem;
     }
-    h1 {
-      text-align: center;
-      color: #64b5f6;
-      margin-bottom: 1rem;
+    h2 {
+      margin: 0;
+      color: #90caf9;
     }
     .section {
-      margin-bottom: 1rem;
-      border-top: 1px solid #444;
-      padding-top: 1rem;
+      border: 1px solid #333;
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: #1e1e1e;
     }
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+    label, input, button {
+      font-size: 1rem;
     }
-    input[type="time"], input[type="date"] {
-      flex: 1;
-      padding: 0.4rem;
-      background-color: #2c2c2c;
-      border: 1px solid #555;
+    input[type="time"] {
+      background-color: #222;
       color: #fff;
+      border: 1px solid #555;
+      padding: 0.5rem;
       border-radius: 4px;
     }
     button {
+      margin-left: 0.5rem;
       background-color: #1976d2;
       color: white;
       border: none;
-      padding: 0.4rem 0.8rem;
+      padding: 0.5rem 1rem;
       border-radius: 4px;
       cursor: pointer;
-    }
-    .result, .calendar, .summary {
-      background: #1e1e1e;
-      padding: 1rem;
-      border-radius: 8px;
-      overflow-y: auto;
-      flex: 1;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 0.5rem;
+      background-color: #222;
     }
     th, td {
-      padding: 0.3rem;
-      border-bottom: 1px solid #333;
+      border: 1px solid #444;
+      padding: 0.5rem;
       text-align: center;
     }
-    select {
-      background: #2c2c2c;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 0.4rem;
-      margin-bottom: 0.5rem;
-    }
-    .msg {
+    .footer {
       text-align: center;
-      margin: 0.5rem 0;
-      color: #81c784;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Work Tracker</h1>
+  <div class="container">
+    <h2>Work Entry</h2>
     <div class="section">
-      <label>Start Time:</label>
-      <div class="input-row">
-        <input type="time" id="startTime" onchange="autoCalculateExpectedEndTime()">
-        <button onclick="setCurrentTime('startTime'); autoCalculateExpectedEndTime()">Now</button>
-      </div>
+      <label for="start">Start time:</label>
+      <input type="time" id="start" />
+      <button onclick="setNow('start')">Now</button>
+      <div id="predictedExit"></div>
     </div>
+
     <div class="section">
-      <label>End Time:</label>
-      <div class="input-row">
-        <input type="time" id="endTime" onchange="calculateAndSave()">
-        <button onclick="setCurrentTime('endTime'); calculateAndSave()">Now</button>
-      </div>
+      <label for="end">End time (optional):</label>
+      <input type="time" id="end" />
+      <button onclick="setNow('end')">Now</button>
+      <div id="overtimeResult"></div>
     </div>
-    <div class="msg" id="msg"></div>
-    <div class="result" id="result"></div>
-    <div class="calendar" id="calendar"></div>
-    <div class="summary">
-      <select id="monthSelect" onchange="renderSummary()"></select>
-      <button onclick="exportPDF()">Export PDF</button>
-      <div id="summaryTable"></div>
+
+    <div class="section">
+      <label for="calendar">📅 Select date:</label>
+      <input type="date" id="calendar" />
+      <button onclick="saveDay()">Save Day</button>
+      <button onclick="deleteDay()">Delete</button>
+    </div>
+
+    <div class="section">
+      <label for="monthSelect">📊 Monthly Summary:</label>
+      <input type="month" id="monthSelect" onchange="generateSummary()" />
+      <button onclick="exportToPDF()">Export PDF</button>
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Overtime</th>
+            <th>Minutini</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
+
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
-    }
-
-    const resultEl = document.getElementById("result");
-    const msgEl = document.getElementById("msg");
-
-    function showMsg(text) {
-      msgEl.textContent = text;
-      setTimeout(() => msgEl.textContent = '', 2000);
-    }
-
-    function setCurrentTime(id) {
+    const setNow = (fieldId) => {
       const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById(id).value = `${h}:${m}`;
-    }
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.getElementById(fieldId).value = `${hours}:${minutes}`;
+      if (fieldId === 'start') calculateExit();
+      if (fieldId === 'end') calculateOvertime();
+    };
 
-    function formatTime(date) {
-      return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    }
+    const calculateExit = () => {
+      const start = document.getElementById("start").value;
+      if (!start) return;
+      const [h, m] = start.split(":").map(Number);
+      const exit = new Date();
+      exit.setHours(h);
+      exit.setMinutes(m + 45 + 8 * 60); // 8h45
+      const outH = exit.getHours().toString().padStart(2, '0');
+      const outM = exit.getMinutes().toString().padStart(2, '0');
+      document.getElementById("predictedExit").innerText = `Predicted exit: ${outH}:${outM}`;
+    };
 
-    function autoCalculateExpectedEndTime() {
-      const val = document.getElementById("startTime").value;
-      if (!val) return;
-      const [h, m] = val.split(":").map(Number);
-      const start = new Date();
-      start.setHours(h, m, 0, 0);
-      const end = new Date(start);
-      end.setMinutes(end.getMinutes() + 525);
-      resultEl.innerHTML = `<strong>Expected end:</strong> ${formatTime(end)}`;
-      calculateAndSave();
-    }
+    const calculateOvertime = () => {
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+      if (!start || !end) return;
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
 
-    function calculateAndSave(dateKey = null, customStart = null, customEnd = null) {
-      const startVal = customStart || document.getElementById("startTime").value;
-      const endVal = customEnd || document.getElementById("endTime").value;
-      if (!startVal || !endVal) return;
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      const workMin = endMin - startMin;
+      const baseMin = 8 * 60 + 45;
 
-      const [sh, sm] = startVal.split(":"), [eh, em] = endVal.split(":");
-      const start = new Date(), end = new Date();
-      start.setHours(+sh, +sm, 0, 0);
-      end.setHours(+eh, +em, 0, 0);
+      let overtime = 0;
+      let minutini = 0;
 
-      const expected = new Date(start);
-      expected.setMinutes(start.getMinutes() + 525);
-      let diff = Math.floor((end - expected) / 60000);
-
-      let overtime = 0, minutini = 0;
-      if (diff > 0) {
-        if (diff >= 30) {
-          overtime = 30 + Math.floor((diff - 30) / 15) * 15;
-          minutini = (diff - 30) % 15;
-        } else {
-          minutini = diff;
-        }
+      if (workMin > baseMin + 30) {
+        overtime = Math.floor((workMin - baseMin - 30) / 15) * 15;
+        minutini = (workMin - baseMin - 30) % 15;
+      } else if (workMin > baseMin) {
+        minutini = workMin - baseMin;
       }
 
-      const dayKey = dateKey || new Date().toISOString().split("T")[0];
+      document.getElementById("overtimeResult").innerText = 
+        `Overtime: ${overtime} min | Minutini: ${minutini} min`;
+    };
+
+    const saveDay = () => {
+      const date = document.getElementById("calendar").value;
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+      if (!date || !start || !end) return;
+
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      const baseMin = 8 * 60 + 45;
+
+      let overtime = 0;
+      let minutini = 0;
+      const diff = endMin - startMin;
+
+      if (diff > baseMin + 30) {
+        overtime = Math.floor((diff - baseMin - 30) / 15) * 15;
+        minutini = (diff - baseMin - 30) % 15;
+      } else if (diff > baseMin) {
+        minutini = diff - baseMin;
+      }
+
       const data = {
-        date: dayKey,
-        start: startVal,
-        end: endVal,
+        start,
+        end,
         overtime,
         minutini
       };
+      localStorage.setItem("day-" + date, JSON.stringify(data));
+      alert("Saved!");
+      generateSummary();
+    };
 
-      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
-      store[dayKey] = data;
-      localStorage.setItem("workdays", JSON.stringify(store));
-      showMsg("Saved successfully");
+    const deleteDay = () => {
+      const date = document.getElementById("calendar").value;
+      if (!date) return;
+      localStorage.removeItem("day-" + date);
+      alert("Deleted.");
+      generateSummary();
+    };
 
-      if (!dateKey) {
-        resultEl.innerHTML =
-          `<strong>Expected end:</strong> ${formatTime(expected)}<br>` +
-          `<strong>Overtime:</strong> ${overtime} min<br>` +
-          `<strong>Minutini:</strong> ${minutini} min`;
+    const generateSummary = () => {
+      const tbody = document.querySelector("#summaryTable tbody");
+      tbody.innerHTML = "";
+      const month = document.getElementById("monthSelect").value;
+      if (!month) return;
+      const [y, m] = month.split("-");
+      const daysInMonth = new Date(y, m, 0).getDate();
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const day = `${y}-${m.padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+        const data = localStorage.getItem("day-" + day);
+        if (data) {
+          const { start, end, overtime, minutini } = JSON.parse(data);
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${day}</td>
+            <td>${start}</td>
+            <td>${end}</td>
+            <td>${overtime}</td>
+            <td>${minutini}</td>
+          `;
+          tbody.appendChild(row);
+        }
+      }
+    };
+
+    async function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const table = document.getElementById("summaryTable");
+      if (!table) {
+        alert("No table found to export.");
+        return;
       }
 
-      renderCalendar();
-      renderSummary();
-    }
+      let rows = [];
+      const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText);
+      rows.push(headers);
 
-    function renderCalendar() {
-      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
-      const keys = Object.keys(store).sort().reverse();
-      const cal = document.getElementById("calendar");
-      cal.innerHTML = `<h3>Daily Logs</h3>`;
-      keys.forEach(k => {
-        const d = store[k];
-        cal.innerHTML += `
-          <div>
-            <strong>${k}</strong>: ${d.start} - ${d.end} | OT: ${d.overtime} | Min: ${d.minutini}<br>
-            <input type="time" id="edit-start-${k}" value="${d.start}">
-            <input type="time" id="edit-end-${k}" value="${d.end}">
-            <button onclick="saveEdit('${k}')">Save</button>
-            <button onclick="deleteDay('${k}')">Delete</button>
-          </div>
-        `;
+      table.querySelectorAll("tbody tr").forEach(tr => {
+        const row = Array.from(tr.querySelectorAll("td")).map(td => td.innerText);
+        rows.push(row);
       });
-    }
 
-    function saveEdit(k) {
-      const s = document.getElementById(`edit-start-${k}`).value;
-      const e = document.getElementById(`edit-end-${k}`).value;
-      calculateAndSave(k, s, e);
-    }
-
-    function deleteDay(k) {
-      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
-      delete store[k];
-      localStorage.setItem("workdays", JSON.stringify(store));
-      renderCalendar();
-      renderSummary();
-      showMsg("Deleted");
-    }
-
-    function renderSummary() {
-      const store = JSON.parse(localStorage.getItem("workdays") || "{}");
-      const summary = document.getElementById("summaryTable");
-      const monthSelect = document.getElementById("monthSelect");
-      const months = [...new Set(Object.keys(store).map(k => k.slice(0, 7)))];
-
-      monthSelect.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
-      const selected = monthSelect.value || months[0];
-      monthSelect.value = selected;
-
-      let rows = Object.entries(store).filter(([k]) => k.startsWith(selected));
-
-      let totalOT = 0, totalMinutini = 0;
-      let table = `<table><tr><th>Date</th><th>In</th><th>Out</th><th>OT</th><th>Min</th></tr>`;
-      rows.forEach(([date, d]) => {
-        totalOT += d.overtime;
-        totalMinutini += d.minutini;
-        table += `<tr><td>${date}</td><td>${d.start}</td><td>${d.end}</td><td>${d.overtime}</td><td>${d.minutini}</td></tr>`;
+      let y = 10;
+      rows.forEach((row, idx) => {
+        row.forEach((cell, i) => {
+          doc.text(cell, 10 + i * 40, y);
+        });
+        y += 10;
       });
-      table += `<tr><th colspan=3>Total</th><th>${totalOT}</th><th>${totalMinutini}</th></tr></table>`;
-      summary.innerHTML = table;
-    }
 
-    async function exportPDF() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      const el = document.getElementById("summaryTable");
-      pdf.html(el, {
-        callback: function (doc) {
-          const m = document.getElementById("monthSelect").value;
-          doc.save(`WorkLog-${m}.pdf`);
-        },
-        x: 10, y: 10
-      });
+      const now = new Date();
+      const filename = `WorkLog-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}.pdf`;
+      doc.save(filename);
     }
-
-    renderCalendar();
-    setTimeout(renderSummary, 50);
   </script>
 </body>
 </html>
