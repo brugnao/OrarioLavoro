@@ -1,343 +1,116 @@
-<!DOCTYPE html>
-<html lang="it">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orario Lavoro</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Orario Lavoro">
-    <meta name="description" content="Calcola automaticamente l'orario di uscita dal lavoro dopo 8 ore e 45 minuti">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk9yYXJpbyBMYXZvcm8iLAogICJzaG9ydF9uYW1lIjogIk9yYXJpbyBMYXZvcm8iLAogICJkZXNjcmlwdGlvbiI6ICJDYWxjb2xhIGwnaG9yYXJpbyBkaSB1c2NpdGEgZGFsIGxhdm9ybyBkb3BvIDggb3JlIGUgNDUgbWludXRpIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjNjY3ZWVhIiwKICAidGhlbWVfY29sb3IiOiAiIzY2N2VlYSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJeE1qUWlJR2hsYVdkb2REMGlNVEkwSWo0OGNtVmpkQ0I0UFNJeE1pSWdlVDBpTVRJaUlIZHBaSFJvUFNJeE1EQWlJR2hsYVdkb2REMGlNVEF3SWlCbWFXeHNQU0lqTmpZM1pXVmhJaUJ5ZUQwaU1UQWlMejQ4ZEdWNGRDQjRQU0kyTWlJZ2VUMGlOVEFpSUhSbGVIUXRZVzVqYUc5eVBTSnRhV1JrYkdVaUlHWnBiR3c5SWlOM1pXbDNNUzk5TGtCaGJuVEF3TlRZMFBSVnRMeGFBZUcxeEFIUkRJdUlHWnZiblF0YzJsNlpUMGlNalJvZWlJK01qQXdLamh1YjNGRlpEb2hhQXgxSWtGSkNrUnFWd2kyTm1OdWRDNWZRSFJxWW1Fa1pVRHVVejU4TDNSbGVIUStQQzl6ZG1jKyIsICAgICAgInNpemVzIjogIjEyNHgxMjQiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
-    
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjQiIGhlaWdodD0iMTI0Ij48cmVjdCB4PSIxMiIgeT0iMTIiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjNjY3ZWVhIiByeD0iMTAiLz48dGV4dCB4PSI2MiIgeT0iNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjI0cHgiPjIwPC90ZXh0Pjx0ZXh0IHg9IjYyIiB5PSI3NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTJweCIgb3BhY2l0eT0iMC44Ij46NDUgaDwvdGV4dD48L3N2Zz4=">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .input-group {
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-            font-size: 16px;
-        }
-        
-        input[type="time"] {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 18px;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-            color: #333;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        
-        input[type="time"]:focus {
-            border-color: #667eea;
-            outline: none;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .result-container {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            color: white;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-        
-        .result-label {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-        
-        .result-time {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-        }
-        
-        .work-duration {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        
-        .clock-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.7;
-        }
-        
-        .empty-state {
-            opacity: 0.6;
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        .clear-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-top: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .clear-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .info-banner {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: white;
-            text-align: center;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .success-animation {
-            animation: pulse 0.6s ease-in-out;
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-                margin: 10px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .result-time {
-                font-size: 28px;
-            }
-            
-            input[type="time"] {
-                font-size: 16px;
-                padding: 12px;
-            }
-        }
-        
-        /* Migliora l'aspetto su Android */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .container {
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                border-radius: 15px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Time Calculator</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#222">
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e1e1e;
+      color: #f5f5f5;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #2a2a2a;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      color: #90ee90;
+    }
+    input, button {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 80%;
+      border-radius: 0.5rem;
+      border: none;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      color: #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="info-banner">
-            📱 Orario di Lavoro v1.0
-        </div>
-        
-        <h1>⏰ Calcola Orario Uscita</h1>
-        
-        <div class="input-group">
-            <label for="entryTime">Orario di Ingresso:</label>
-            <input type="time" id="entryTime" placeholder="Inserisci orario di ingresso">
-        </div>
-        
-        <div class="result-container" id="resultContainer">
-            <div class="empty-state">
-                <div class="clock-icon">🕐</div>
-                <div class="result-label">Inserisci l'orario di ingresso</div>
-                <div style="font-size: 14px; opacity: 0.7;">L'orario di uscita verrà calcolato automaticamente</div>
-                <div style="font-size: 12px; opacity: 0.6; margin-top: 8px;">Durata: 8 ore e 45 minuti</div>
-            </div>
-        </div>
-    </div>
+  <div class="container">
+    <h1>Work Time Calculator</h1>
+    <label for="startTime">Start Time (HH:mm):</label><br>
+    <input type="time" id="startTime" required><br>
+    <button onclick="setCurrentTime()">Now</button>
+    <button onclick="calculateTimes()">Calculate</button>
+    <div class="result" id="result"></div>
+  </div>  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
 
-    <script>
-        const entryTimeInput = document.getElementById('entryTime');
-        const resultContainer = document.getElementById('resultContainer');
-        
-        // Funzione per calcolare l'orario di uscita
-        function calculateExitTime(entryTime) {
-            if (!entryTime) return null;
-            
-            const [hours, minutes] = entryTime.split(':').map(Number);
-            
-            // Converti in minuti totali
-            let totalMinutes = hours * 60 + minutes;
-            
-            // Aggiungi 8 ore e 45 minuti (525 minuti)
-            totalMinutes += 525;
-            
-            // Converti di nuovo in ore e minuti
-            const exitHours = Math.floor(totalMinutes / 60) % 24;
-            const exitMinutes = totalMinutes % 60;
-            
-            // Formatta con zero iniziale se necessario
-            const formattedHours = exitHours.toString().padStart(2, '0');
-            const formattedMinutes = exitMinutes.toString().padStart(2, '0');
-            
-            return `${formattedHours}:${formattedMinutes}`;
+    function setCurrentTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('startTime').value = `${hours}:${minutes}`;
+    }
+
+    function calculateTimes() {
+      const input = document.getElementById("startTime").value;
+      if (!input) return alert("Please enter a valid time.");
+
+      const [h, m] = input.split(":").map(Number);
+      const start = new Date();
+      start.setHours(h, m, 0);
+
+      const end = new Date(start);
+      end.setMinutes(end.getMinutes() + 8 * 60 + 45);
+
+      const now = new Date();
+      let overtime = 0;
+      let minutini = 0;
+
+      if (now > end) {
+        const diffMinutes = Math.floor((now - end) / 60000);
+        if (diffMinutes >= 30) {
+          overtime += 30;
+          const remainder = diffMinutes - 30;
+          const blocks = Math.floor(remainder / 15);
+          overtime += blocks * 15;
+          minutini = remainder % 15;
+        } else {
+          minutini = diffMinutes;
         }
-        
-        // Funzione per determinare se è il giorno successivo
-        function isNextDay(entryTime) {
-            const [hours] = entryTime.split(':').map(Number);
-            const totalMinutes = hours * 60 + parseInt(entryTime.split(':')[1]);
-            return (totalMinutes + 525) >= 1440; // Se supera le 24 ore
-        }
-        
-        // Funzione per aggiornare il risultato
-        function updateResult() {
-            const entryTime = entryTimeInput.value;
-            
-            if (entryTime) {
-                const exitTime = calculateExitTime(entryTime);
-                const nextDay = isNextDay(entryTime);
-                const dayIndicator = nextDay ? ' (giorno successivo)' : '';
-                
-                resultContainer.innerHTML = `
-                    <div class="fade-in">
-                        <div class="result-label">Orario di Uscita:</div>
-                        <div class="result-time">${exitTime}</div>
-                        <div class="work-duration">Durata: 8 ore e 45 minuti${dayIndicator}</div>
-                        <button class="clear-button" onclick="clearTime()">Cancella</button>
-                    </div>
-                `;
-                
-                resultContainer.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-                resultContainer.classList.add('success-animation');
-                
-                // Rimuovi l'animazione dopo che è finita
-                setTimeout(() => {
-                    resultContainer.classList.remove('success-animation');
-                }, 600);
-            } else {
-                resultContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="clock-icon">🕐</div>
-                        <div class="result-label">Inserisci l'orario di ingresso</div>
-                        <div style="font-size: 14px; opacity: 0.7;">L'orario di uscita verrà calcolato automaticamente</div>
-                        <div style="font-size: 12px; opacity: 0.6; margin-top: 8px;">Durata: 8 ore e 45 minuti</div>
-                    </div>
-                `;
-                
-                resultContainer.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-            }
-        }
-        
-        // Funzione per cancellare l'orario
-        function clearTime() {
-            entryTimeInput.value = '';
-            updateResult();
-            entryTimeInput.focus();
-        }
-        
-        // Event listeners
-        entryTimeInput.addEventListener('input', updateResult);
-        entryTimeInput.addEventListener('change', updateResult);
-        
-        // Inizializzazione
-        window.addEventListener('load', function() {
-            // Aggiungi un piccolo ritardo per l'animazione iniziale
-            setTimeout(() => {
-                document.body.style.opacity = '1';
-            }, 100);
-        });
-        
-        // Previeni zoom su iOS
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        });
-        
-        // Gestione orientamento per mobile
-        window.addEventListener('orientationchange', function() {
-            setTimeout(updateResult, 100);
-        });
-    </script>
-</body>
+      }
+
+      const formatTime = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+      document.getElementById("result").innerHTML = 
+        `<strong>Expected End Time:</strong> ${formatTime(end)}<br>` +
+        `<strong>Overtime:</strong> ${overtime} min<br>` +
+        `<strong>Minutini:</strong> ${minutini} min`;
+    }
+  </script></body>
 </html>
