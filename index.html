@@ -4,15 +4,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Work Time Calculator</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#222">
+  <meta name="theme-color" content="#1976d2">
   <style>
     :root {
       color-scheme: light dark;
     }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #1e1e1e;
-      color: #f5f5f5;
+      background-color: #f0f4f8;
+      color: #333;
       margin: 0;
       padding: 2rem;
       display: flex;
@@ -21,48 +21,79 @@
       min-height: 100vh;
     }
     .container {
-      background: #2a2a2a;
+      background: white;
       padding: 2rem;
       border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       text-align: center;
-      max-width: 400px;
+      max-width: 450px;
       width: 100%;
     }
     h1 {
-      color: #90ee90;
+      color: #1976d2;
     }
-    input, button {
-      font-size: 1rem;
+    label {
+      font-weight: 500;
+    }
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin: 0.5rem 0;
-      padding: 0.5rem;
-      width: 80%;
-      border-radius: 0.5rem;
-      border: none;
     }
-    .result {
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      color: #ccc;
+    input[type="time"] {
+      font-size: 1rem;
+      padding: 0.4rem;
+      border-radius: 0.4rem;
+      border: 1px solid #ccc;
+      flex-grow: 1;
+      margin-right: 0.5rem;
     }
     button {
-      background-color: #4CAF50;
+      background-color: #1976d2;
       color: white;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 0.4rem;
       cursor: pointer;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #1565c0;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      color: #444;
+    }
+    .section {
+      margin-top: 1rem;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Work Time Calculator</h1>
-    <label for="startTime">Start Time (HH:mm):</label><br>
-    <input type="time" id="startTime" required><br>
-    <button onclick="setCurrentTime()">Now</button>
-    <button onclick="calculateTimes()">Calculate</button>
-    <div class="result" id="result"></div>
+    <h1>Work Time Calculator</h1><div class="section">
+  <label for="startTime">Start Time:</label>
+  <div class="input-row">
+    <input type="time" id="startTime">
+    <button onclick="setCurrentTime('startTime')">Now</button>
+  </div>
+</div>
+
+<div class="section">
+  <label for="endTime">Actual End Time (optional):</label>
+  <div class="input-row">
+    <input type="time" id="endTime">
+    <button onclick="setCurrentTime('endTime')">Now</button>
+  </div>
+</div>
+
+<button onclick="calculateTimes()" style="margin-top: 1rem; width: 100%;">Calculate</button>
+
+<div class="result" id="result"></div>
+
   </div>  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -70,30 +101,37 @@
       });
     }
 
-    function setCurrentTime() {
+    function setCurrentTime(fieldId) {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('startTime').value = `${hours}:${minutes}`;
+      document.getElementById(fieldId).value = `${hours}:${minutes}`;
     }
 
     function calculateTimes() {
-      const input = document.getElementById("startTime").value;
-      if (!input) return alert("Please enter a valid time.");
+      const startInput = document.getElementById("startTime").value;
+      const endInput = document.getElementById("endTime").value;
 
-      const [h, m] = input.split(":").map(Number);
+      if (!startInput) return alert("Please enter a start time.");
+
+      const [h1, m1] = startInput.split(":").map(Number);
       const start = new Date();
-      start.setHours(h, m, 0);
+      start.setHours(h1, m1, 0, 0);
 
-      const end = new Date(start);
-      end.setMinutes(end.getMinutes() + 8 * 60 + 45);
+      const expectedEnd = new Date(start);
+      expectedEnd.setMinutes(expectedEnd.getMinutes() + 8 * 60 + 45);
 
-      const now = new Date();
+      let actualEnd = endInput ? new Date() : new Date();
+      if (endInput) {
+        const [h2, m2] = endInput.split(":").map(Number);
+        actualEnd.setHours(h2, m2, 0, 0);
+      }
+
       let overtime = 0;
       let minutini = 0;
 
-      if (now > end) {
-        const diffMinutes = Math.floor((now - end) / 60000);
+      if (actualEnd > expectedEnd) {
+        const diffMinutes = Math.floor((actualEnd - expectedEnd) / 60000);
         if (diffMinutes >= 30) {
           overtime += 30;
           const remainder = diffMinutes - 30;
@@ -107,8 +145,8 @@
 
       const formatTime = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
-      document.getElementById("result").innerHTML = 
-        `<strong>Expected End Time:</strong> ${formatTime(end)}<br>` +
+      document.getElementById("result").innerHTML =
+        `<strong>Expected End Time:</strong> ${formatTime(expectedEnd)}<br>` +
         `<strong>Overtime:</strong> ${overtime} min<br>` +
         `<strong>Minutini:</strong> ${minutini} min`;
     }
