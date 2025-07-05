@@ -23,9 +23,9 @@
       gap: 1rem;
     }
     h2 {
-  margin: 0;
-  color: #90caf9;
-  text-align: center; /* ✅ centrato */
+      margin: 0;
+      color: #90caf9;
+      text-align: center;
     }
     .section {
       border: 1px solid #333;
@@ -36,7 +36,9 @@
     label, input, button {
       font-size: 1rem;
     }
-    input[type="time"] {
+    input[type="time"],
+    input[type="date"],
+    input[type="month"] {
       background-color: #222;
       color: #fff;
       border: 1px solid #555;
@@ -44,13 +46,19 @@
       border-radius: 4px;
     }
     button {
-      margin-left: 0.5rem;
       background-color: #1976d2;
       color: white;
       border: none;
       padding: 0.5rem 1rem;
       border-radius: 4px;
       cursor: pointer;
+    }
+    .time-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     table {
       width: 100%;
@@ -62,32 +70,27 @@
       padding: 0.5rem;
       text-align: center;
     }
-    .footer {
-      text-align: center;
-      margin-top: 1rem;
-    }
-    .time-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Work Entry</h2>
+    <h2>Work Tracker</h2>
+
     <div class="section">
       <label for="start">Start time:</label>
-      <input type="time" id="start" />
-      <button onclick="setNow('start')">Now</button>
+      <div class="time-group">
+        <input type="time" id="start" />
+        <button onclick="setNow('start')">Now</button>
+      </div>
       <div id="predictedExit"></div>
     </div>
 
     <div class="section">
       <label for="end">End time (optional):</label>
-      <input type="time" id="end" />
-      <button onclick="setNow('end')">Now</button>
+      <div class="time-group">
+        <input type="time" id="end" />
+        <button onclick="setNow('end')">Now</button>
+      </div>
       <div id="overtimeResult"></div>
     </div>
 
@@ -263,6 +266,12 @@
       const filename = `WorkLog-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}.pdf`;
       doc.save(filename);
     }
+
+    // Aggiunto: calcolo automatico su modifica manuale
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("start").addEventListener("change", calculateExit);
+      document.getElementById("end").addEventListener("change", calculateOvertime);
+    });
   </script>
 </body>
 </html>
