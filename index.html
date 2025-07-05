@@ -2,391 +2,309 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Work Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#1976d2" />
+  <title>Work Tracker</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      background: #121212;
-      color: #ffffff;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #fff;
       overflow: hidden;
     }
 
-    h2 {
+    h1 {
       text-align: center;
-      color: #90caf9;
-      margin-bottom: 0.5rem;
+      color: #2196f3;
+      margin: 1em 0 0.5em;
     }
 
-    .tabs {
+    .tab-container {
       display: flex;
+      justify-content: center;
       background-color: #1e1e1e;
     }
 
-    .tab {
-      flex: 1;
-      padding: 1rem;
-      text-align: center;
-      cursor: pointer;
-      background-color: #1e1e1e;
-      color: #90caf9;
-      font-weight: bold;
-      border-bottom: 2px solid transparent;
-    }
-
-    .tab.active {
-      border-bottom: 2px solid #90caf9;
-    }
-
-    .container {
-      padding: 1rem;
-    }
-
-    .section {
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      background-color: #1e1e1e;
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-
-    input[type="time"],
-    input[type="date"],
-    input[type="month"] {
-      width: 100%;
-      padding: 0.5rem;
-      background: #222;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 4px;
-      margin-bottom: 0.5rem;
-    }
-
-    button {
+    .tab-button {
       background-color: #1976d2;
-      color: white;
       border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      margin-top: 0.5rem;
-      cursor: pointer;
-    }
-
-    .time-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .output {
-      text-align: center;
+      color: white;
+      padding: 0.6em 1.2em;
+      margin: 0.3em;
       font-weight: bold;
-      margin-top: 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: #222;
+    .tab-button.active {
+      background-color: #2196f3;
     }
 
-    th, td {
-      border: 1px solid #444;
-      padding: 0.5rem;
-      text-align: center;
-    }
-
-    #hoursTab, #calendarTab {
+    .tab-content {
+      padding: 1em;
       display: none;
     }
 
-    .active-tab {
+    .tab-content.active {
       display: block;
     }
 
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 4px;
-      margin-top: 1rem;
+    .section {
+      text-align: center;
+      margin: 1em auto;
     }
 
-    .calendar-day {
-      background-color: #1e1e1e;
-      padding: 0.5rem;
+    label, input, button {
+      display: inline-block;
+      margin: 0.3em;
+      font-size: 1em;
+    }
+
+    input[type="time"] {
+      padding: 0.2em;
+      background-color: #222;
+      color: #fff;
       border: 1px solid #444;
+      border-radius: 4px;
+    }
+
+    .result {
+      font-weight: bold;
       text-align: center;
+      margin-top: 1em;
+    }
+
+    button.now-btn {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 0.5em;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      margin: 1em 0;
+    }
+
+    #calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+    }
+
+    #calendar-table th, #calendar-table td {
+      border: 1px solid #333;
+      text-align: center;
+      padding: 0.6em;
       cursor: pointer;
     }
 
-    .calendar-day.selected {
+    #calendar-table td.selected {
       background-color: #1976d2;
-      color: white;
       font-weight: bold;
-    }
-
-    .week-num {
-      background-color: #333;
-      font-size: 0.8rem;
     }
   </style>
 </head>
 <body>
 
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('hours')">Hours</div>
-    <div class="tab" onclick="switchTab('calendar')">Calendar</div>
+<h1>Work Tracker</h1>
+
+<div class="tab-container">
+  <button class="tab-button active" onclick="openTab('hours')">Hours</button>
+  <button class="tab-button" onclick="openTab('calendar')">Calendar</button>
+</div>
+
+<div id="hours" class="tab-content active">
+  <div class="section">
+    <label>Check-in:</label>
+    <input type="time" id="checkIn" />
+    <button class="now-btn" onclick="setNow('checkIn')">Now</button>
   </div>
 
-  <div class="container">
-    <div id="hoursTab" class="active-tab">
-      <h2>Work Entry</h2>
-
-      <div class="section">
-        <label for="start">Start time:</label>
-        <div class="time-group">
-          <input type="time" id="start" />
-          <button onclick="setNow('start')">Now</button>
-        </div>
-        <div id="predictedExit" class="output"></div>
-      </div>
-
-      <div class="section">
-        <label for="end">End time (optional):</label>
-        <div class="time-group">
-          <input type="time" id="end" />
-          <button onclick="setNow('end')">Now</button>
-        </div>
-        <div id="overtimeResult" class="output"></div>
-      </div>
-
-      <div class="section">
-        <label for="calendar">📅 Select date:</label>
-        <input type="date" id="calendar" />
-        <button onclick="saveDay()">Save Day</button>
-        <button onclick="deleteDay()">Delete</button>
-      </div>
-
-      <div class="section">
-        <label for="monthSelect">📊 Monthly Summary:</label>
-        <input type="month" id="monthSelect" onchange="generateSummary()" />
-        <button onclick="exportToPDF()">Export PDF</button>
-        <table id="summaryTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Overtime</th>
-              <th>Minutini</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="calendarTab">
-      <h2>Calendar View</h2>
-      <p style="text-align: center; font-size: 0.9rem;">(Minimal view with week numbers – Monday to Sunday)</p>
-      <!-- Placeholder: qui potrai integrare un calendario interattivo personalizzato -->
-      <div class="calendar-grid">
-        <div class="calendar-day week-num">Wk</div>
-        <div class="calendar-day">Mon</div>
-        <div class="calendar-day">Tue</div>
-        <div class="calendar-day">Wed</div>
-        <div class="calendar-day">Thu</div>
-        <div class="calendar-day">Fri</div>
-        <div class="calendar-day">Sat</div>
-        <div class="calendar-day">Sun</div>
-        <!-- Righe con giorni esempio -->
-        <div class="calendar-day week-num">27</div>
-        <div class="calendar-day">1</div>
-        <div class="calendar-day">2</div>
-        <div class="calendar-day">3</div>
-        <div class="calendar-day">4</div>
-        <div class="calendar-day">5</div>
-        <div class="calendar-day">6</div>
-        <div class="calendar-day">7</div>
-      </div>
-    </div>
+  <div class="section">
+    <label>Actual Check-out (optional):</label>
+    <input type="time" id="checkOut" />
+    <button class="now-btn" onclick="setNow('checkOut')">Now</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    const setNow = (fieldId) => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      document.getElementById(fieldId).value = `${hours}:${minutes}`;
-      if (fieldId === 'start') calculateExit();
-      if (fieldId === 'end') calculateOvertime();
-    };
+  <div class="result" id="expectedOut"></div>
+  <div class="result" id="extraResult"></div>
+</div>
 
-    const calculateExit = () => {
-      const start = document.getElementById("start").value;
-      if (!start) return;
-      const [h, m] = start.split(":").map(Number);
-      const exit = new Date();
-      exit.setHours(h);
-      exit.setMinutes(m + 45 + 8 * 60);
-      const outH = exit.getHours().toString().padStart(2, '0');
-      const outM = exit.getMinutes().toString().padStart(2, '0');
-      document.getElementById("predictedExit").innerText = `Predicted exit: ${outH}:${outM}`;
-    };
+<div id="calendar" class="tab-content">
+  <div class="calendar-header">
+    <button onclick="changeMonth(-1)">❮</button>
+    <span id="calendar-month"></span>
+    <button onclick="changeMonth(1)">❯</button>
+  </div>
+  <table id="calendar-table"></table>
+  <div class="section" style="margin-top:1em;">
+    <h3 id="selected-date-title">Select a date</h3>
+    <label>Check-in: <input type="time" id="calendarCheckIn"></label>
+    <label>Check-out: <input type="time" id="calendarCheckOut"></label>
+    <button onclick="saveCalendarEntry()">Save</button>
+  </div>
+</div>
 
-    const calculateOvertime = () => {
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
-      if (!start || !end) return;
-      const [sh, sm] = start.split(":").map(Number);
-      const [eh, em] = end.split(":").map(Number);
-      const startMin = sh * 60 + sm;
-      const endMin = eh * 60 + em;
-      const workMin = endMin - startMin;
-      const baseMin = 8 * 60 + 45;
+<script>
+  function openTab(tabId) {
+    document.querySelectorAll(".tab-content").forEach(div => div.classList.remove("active"));
+    document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    document.querySelector(`[onclick="openTab('${tabId}')"]`).classList.add("active");
 
-      let overtime = 0;
-      let minutini = 0;
+    if (tabId === 'calendar') renderCalendar();
+  }
 
-      if (workMin > baseMin + 30) {
-        overtime = Math.floor((workMin - baseMin - 30) / 15) * 15;
-        minutini = (workMin - baseMin - 30) % 15;
-      } else if (workMin > baseMin) {
-        minutini = workMin - baseMin;
-      }
+  function setNow(id) {
+    const now = new Date();
+    document.getElementById(id).value = now.toTimeString().slice(0,5);
+    if (id === 'checkIn') updateExpectedOut();
+    if (id === 'checkOut') calculateExtras();
+  }
 
-      document.getElementById("overtimeResult").innerText =
-        `Overtime: ${overtime} min | Minutini: ${minutini} min`;
-    };
+  document.getElementById('checkIn').addEventListener('input', updateExpectedOut);
+  document.getElementById('checkOut').addEventListener('input', calculateExtras);
 
-    const saveDay = () => {
-      const date = document.getElementById("calendar").value;
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
-      if (!date || !start || !end) return;
-      const [sh, sm] = start.split(":").map(Number);
-      const [eh, em] = end.split(":").map(Number);
-      const startMin = sh * 60 + sm;
-      const endMin = eh * 60 + em;
-      const baseMin = 8 * 60 + 45;
+  function updateExpectedOut() {
+    const checkIn = document.getElementById('checkIn').value;
+    if (!checkIn) return;
 
-      let overtime = 0;
-      let minutini = 0;
-      const diff = endMin - startMin;
+    const [h, m] = checkIn.split(':').map(Number);
+    const out = new Date();
+    out.setHours(h, m + 45 + 8 * 60);
+    document.getElementById('expectedOut').textContent = `Expected check-out: ${out.toTimeString().slice(0,5)}`;
+    calculateExtras();
+  }
 
-      if (diff > baseMin + 30) {
-        overtime = Math.floor((diff - baseMin - 30) / 15) * 15;
-        minutini = (diff - baseMin - 30) % 15;
-      } else if (diff > baseMin) {
-        minutini = diff - baseMin;
-      }
+  function calculateExtras() {
+    const checkIn = document.getElementById('checkIn').value;
+    const checkOut = document.getElementById('checkOut').value;
+    if (!checkIn || !checkOut) return;
 
-      const data = {
-        start,
-        end,
-        overtime,
-        minutini
-      };
-      localStorage.setItem("day-" + date, JSON.stringify(data));
-      alert("Saved!");
-      generateSummary();
-    };
+    const [h1, m1] = checkIn.split(':').map(Number);
+    const [h2, m2] = checkOut.split(':').map(Number);
+    const inMin = h1 * 60 + m1;
+    const outMin = h2 * 60 + m2;
+    const total = outMin - inMin;
+    const expected = 8 * 60 + 45;
 
-    const deleteDay = () => {
-      const date = document.getElementById("calendar").value;
-      if (!date) return;
-      localStorage.removeItem("day-" + date);
-      alert("Deleted.");
-      generateSummary();
-    };
+    let extra = total - expected;
+    let ot = 0;
+    let partial = 0;
 
-    const generateSummary = () => {
-      const tbody = document.querySelector("#summaryTable tbody");
-      tbody.innerHTML = "";
-      const month = document.getElementById("monthSelect").value;
-      if (!month) return;
-      const [y, m] = month.split("-");
-      const daysInMonth = new Date(y, m, 0).getDate();
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const day = `${y}-${m.padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
-        const data = localStorage.getItem("day-" + day);
-        if (data) {
-          const { start, end, overtime, minutini } = JSON.parse(data);
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${day}</td>
-            <td>${start}</td>
-            <td>${end}</td>
-            <td>${overtime}</td>
-            <td>${minutini}</td>
-          `;
-          tbody.appendChild(row);
-        }
-      }
-    };
-
-    async function exportToPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const table = document.getElementById("summaryTable");
-      if (!table) {
-        alert("No table found to export.");
-        return;
-      }
-
-      let rows = [];
-      const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText);
-      rows.push(headers);
-
-      table.querySelectorAll("tbody tr").forEach(tr => {
-        const row = Array.from(tr.querySelectorAll("td")).map(td => td.innerText);
-        rows.push(row);
-      });
-
-      let y = 10;
-      rows.forEach((row, idx) => {
-        row.forEach((cell, i) => {
-          doc.text(cell, 10 + i * 40, y);
-        });
-        y += 10;
-      });
-
-      const now = new Date();
-      const filename = `WorkLog-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}.pdf`;
-      doc.save(filename);
+    if (extra >= 30) {
+      ot = Math.floor((extra - 30) / 15) * 15;
+      partial = (extra - 30) % 15;
+      extra = 30;
+    } else if (extra > 0) {
+      partial = extra;
+      extra = 0;
     }
 
-    const switchTab = (tabName) => {
-      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.active-tab').forEach(el => el.classList.remove('active-tab'));
+    document.getElementById('extraResult').textContent = `Overtime: ${extra + ot} min — Small mins: ${partial} min`;
+  }
 
-      if (tabName === 'hours') {
-        document.querySelector('.tab:nth-child(1)').classList.add('active');
-        document.getElementById('hoursTab').classList.add('active-tab');
-      } else {
-        document.querySelector('.tab:nth-child(2)').classList.add('active');
-        document.getElementById('calendarTab').classList.add('active-tab');
-      }
-    };
+  // Calendar
+  let currentMonth = new Date();
 
-    // Listener per aggiornamento automatico
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("start").addEventListener("change", calculateExit);
-      document.getElementById("end").addEventListener("change", calculateOvertime);
+  function renderCalendar() {
+    const table = document.getElementById("calendar-table");
+    const monthLabel = document.getElementById("calendar-month");
+    table.innerHTML = "";
+
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    const totalDays = lastDay.getDate();
+
+    monthLabel.textContent = currentMonth.toLocaleDateString("en-US", { month: 'long', year: 'numeric' });
+
+    const headerRow = document.createElement("tr");
+    ["Wk", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(d => {
+      const th = document.createElement("th");
+      th.textContent = d;
+      headerRow.appendChild(th);
     });
-  </script>
+    table.appendChild(headerRow);
+
+    let day = 1;
+    let week = getWeekNumber(new Date(year, month, 1));
+
+    while (day <= totalDays) {
+      const row = document.createElement("tr");
+      const weekCell = document.createElement("td");
+      weekCell.textContent = week++;
+      row.appendChild(weekCell);
+
+      for (let i = 0; i < 7; i++) {
+        const td = document.createElement("td");
+        if ((day === 1 && i < startDay) || day > totalDays) {
+          td.textContent = "";
+        } else {
+          td.textContent = day;
+          td.onclick = () => selectCalendarDate(year, month, day);
+          day++;
+        }
+        row.appendChild(td);
+      }
+      table.appendChild(row);
+    }
+  }
+
+  function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  }
+
+  let selectedCalendarDate = null;
+
+  function selectCalendarDate(y, m, d) {
+    const dateStr = `${y}-${String(m+1).padStart(2, "0")}-${String(d).padStart(2,"0")}`;
+    selectedCalendarDate = dateStr;
+    document.getElementById("selected-date-title").textContent = `Selected: ${dateStr}`;
+    const saved = JSON.parse(localStorage.getItem("calendarData") || "{}")[dateStr] || {};
+    document.getElementById("calendarCheckIn").value = saved.in || "";
+    document.getElementById("calendarCheckOut").value = saved.out || "";
+
+    document.querySelectorAll("#calendar-table td").forEach(td => td.classList.remove("selected"));
+    [...document.querySelectorAll("#calendar-table td")].forEach(td => {
+      if (td.textContent === String(d)) td.classList.add("selected");
+    });
+  }
+
+  function saveCalendarEntry() {
+    if (!selectedCalendarDate) return;
+    const checkIn = document.getElementById("calendarCheckIn").value;
+    const checkOut = document.getElementById("calendarCheckOut").value;
+    const data = JSON.parse(localStorage.getItem("calendarData") || "{}");
+    data[selectedCalendarDate] = { in: checkIn, out: checkOut };
+    localStorage.setItem("calendarData", JSON.stringify(data));
+    alert("Saved!");
+  }
+
+  function changeMonth(delta) {
+    currentMonth.setMonth(currentMonth.getMonth() + delta);
+    renderCalendar();
+  }
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register("sw.js").then(() => console.log("SW registered"));
+  }
+</script>
+
 </body>
 </html>
