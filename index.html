@@ -60,6 +60,12 @@
       gap: 0.5rem;
       margin-top: 0.5rem;
     }
+    .result-text {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 0.5rem;
+      color: #90caf9;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -82,7 +88,7 @@
         <input type="time" id="start" />
         <button onclick="setNow('start')">Now</button>
       </div>
-      <div id="predictedExit"></div>
+      <div id="predictedExit" class="result-text"></div>
     </div>
 
     <div class="section">
@@ -91,7 +97,7 @@
         <input type="time" id="end" />
         <button onclick="setNow('end')">Now</button>
       </div>
-      <div id="overtimeResult"></div>
+      <div id="overtimeResult" class="result-text"></div>
     </div>
 
     <div class="section">
@@ -272,6 +278,14 @@
       document.getElementById("start").addEventListener("change", calculateExit);
       document.getElementById("end").addEventListener("change", calculateOvertime);
     });
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").then(() => {
+        console.log("Service Worker Registered");
+      });
+    }
   </script>
 </body>
 </html>
